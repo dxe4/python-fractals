@@ -97,9 +97,9 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
 
 def foo(W, H, iter):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
-    x1, y1, r1 = -0.755625, 0.18125, 4.0
-    x2, y2, r2 = -0.755625, 0.18125, 0.4
-    N = 40
+    x1, y1, r1 = -1.339623, 0.071429988, 2
+    x2, y2, r2 = -1.339623, 0.071429988, 0.00000000009
+    N = 150
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -116,7 +116,7 @@ def foo(W, H, iter):
 
 def run(args):
     I = mandel(*args)
-    I[I == 1] = 101
+    I[I == 1] = 3
     I[I == 0] = 1
     return I
 
@@ -128,11 +128,11 @@ def save(arr, count):
 
 if __name__ == '__main__':
     # convert  abc* ms.gif
-    gen = foo(3073, 3073, 100)
+    gen = foo(600, 600, 100)
     for count, i in enumerate(gen):
         start = time.time()
         arr = run(i)
         save(arr, count)
         print(i)
         print('Time taken: {}'.format(str(time.time() - start)))
-        break
+
