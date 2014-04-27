@@ -116,12 +116,13 @@ def foo(W, H, iter):
 
 def run(args):
     I = mandel(*args)
-    I[I == 0] = 101
+    I[I == 1] = 101
+    I[I == 0] = 1
     return I
 
 
 def save(arr, count):
-    img = imshow(arr.T, origin='lower left')
+    img = imshow(arr.T, origin='lower left', cmap="spectral")
     img.write_png('abc/abc_%03d.png' % count, noscale=True)
     close()
 
@@ -134,3 +135,4 @@ if __name__ == '__main__':
         save(arr, count)
         print(i)
         print('Time taken: {}'.format(str(time.time() - start)))
+        break
