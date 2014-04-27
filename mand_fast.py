@@ -4,6 +4,11 @@ from numpy import copy, multiply, add
 import time
 import math
 import os
+import sys
+import os
+
+from  concurrent.futures import ProcessPoolExecutor
+from multiprocessing.pool import Pool
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
 def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
@@ -94,7 +99,7 @@ def foo(W, H, iter):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
     x1, y1, r1 = -0.755625, 0.18125, 4.0
     x2, y2, r2 = -0.755625, 0.18125, 0.4
-    N = 45
+    N = 40
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -109,19 +114,23 @@ def foo(W, H, iter):
         yield W, H, iter, x_min, x_max, y_min, y_max
 
 
+def run(args):
+    I = mandel(*args)
+    I[I == 0] = 101
+    return I
+
+
+def save(arr, count):
+    img = imshow(arr.T, origin='lower left')
+    img.write_png('abc/abc_%03d.png' % count, noscale=True)
+    close()
+
 if __name__ == '__main__':
     # convert  abc* ms.gif
-    gen = foo(1024, 1024, 60)
-    print(gen)
-    for i, args in enumerate(gen):
-    # I = mandel(6146, 6146, 60, -2, .5, -1.25, 1.25)
-    # I = mandel(1536, 1536, 60, -2, .5, -1.25, 1.25)
+    gen = foo(3073, 3073, 100)
+    for count, i in enumerate(gen):
         start = time.time()
-        I = mandel(*args)
-        # 569,800
-        print('Time taken:', time.time() - start)
-        I[I == 0] = 101
-        img = imshow(I.T, origin='lower left')
-
-        img.write_png('abc/abc_%03d.png' % i, noscale=True)
-        close()
+        arr = run(i)
+        save(arr, count)
+        print(i)
+        print('Time taken: {}'.format(str(time.time() - start)))
