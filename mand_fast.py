@@ -59,6 +59,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     # first iteration makes z=c so we just start there.
     # We need to copy c because otherwise the operation
     # z->z^2 will send c->c^2.
+    bar = None
     z = copy(c)
     for i in range(itermax):
         if not len(z):
@@ -67,6 +68,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         # less memory
         f = z[0]
         a, b = f.real, f.imag
+        bar = z
         multiply(z, z, z)
         add(z, c, z)
         # these are the points that have escaped
@@ -78,7 +80,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         # this is why we keep the arrays ix and iy
         # because we need to know which point in img
         # to colour
-        img[ix[rem], iy[rem]] = (i + 1) + (iteration * 20)
+        img[ix[rem], iy[rem]] = (i + 1) + (iteration * 2)
 
         # print()
         # -rem is the array of points which haven't
@@ -91,6 +93,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         z = z[rem]
         ix, iy = ix[rem], iy[rem]
         c = c[rem]
+    # print([i for i in bar])
     return img, a, b
 
 
@@ -136,14 +139,17 @@ if __name__ == '__main__':
     x1, y1 =  -1.339623, 0.071429988
     x2, y2 = x1, y1
 
-    r1, r2 = 4, 0.04
-    for iteration in range(1, 20):
-        gen = foo(300, 300, 100, iteration, x1, y1, x2, y2, r1, r2)
+    r1 = 4
+    r2 = r1 - r1 / 3
+    for iteration in range(1, 200):
+        gen = foo(50, 50, 100, iteration, x1, y1, x2, y2, r1, r2)
         for count, i in enumerate(gen):
             start = time.time()
             arr, x, y = run(i)
             save(arr, iteration * 20 + count)
-            print(i)
-            print('Time taken: {}'.format(str(time.time() - start)))
+            # print(iteration * 20 + count)
+            # print('Time taken: {}'.format(str(time.time() - start)))
+        print(r1,r2)
         r1 = r2
-        r2 = r1 / 100
+        r2 = r1 - r1 / 9
+        print(r1,r2)
