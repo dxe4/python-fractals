@@ -3,15 +3,9 @@ from matplotlib.pyplot import imshow, close
 from numpy import copy, multiply, add
 import time
 import math
-import os
-import sys
-import os
-
-from  concurrent.futures import ProcessPoolExecutor
-from multiprocessing.pool import Pool
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
-def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
+def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     '''
     Fast mandelbrot computation using numpy.
 
@@ -19,6 +13,7 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
     itermax is the maximum number of iterations to do
     xmin, xmax, ymin, ymax specify the region of the set to compute.
     '''
+    a, b = 0, 0
     # The point of ix and iy is that they are 2D arrays giving the x-coord and y-coord at each point in
     # the array. The reason for doing this will become clear below...
     #
@@ -70,8 +65,8 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
             break  # all points have escaped
         # equivalent to z = z*z+c but quicker and uses
         # less memory
-        # f = z[0]
-        # print(f.real, f.imag)
+        f = z[0]
+        a, b = f.real, f.imag
         multiply(z, z, z)
         add(z, c, z)
         # these are the points that have escaped
@@ -83,7 +78,7 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
         # this is why we keep the arrays ix and iy
         # because we need to know which point in img
         # to colour
-        img[ix[rem], iy[rem]] = i + 1
+        img[ix[rem], iy[rem]] = (i + 1) + (iteration * 20)
 
         # print()
         # -rem is the array of points which haven't
@@ -96,19 +91,19 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
         z = z[rem]
         ix, iy = ix[rem], iy[rem]
         c = c[rem]
-    return img
+    return img, a, b
 
 
-def foo(W, H, iter, x, y, r1, r2):
+def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
     # x1, y1, r1 = -1.339623, 0.071429988, 2
     # x2, y2, r2 = -1.339623, 0.071429988, 0.00000000009
-    x1, x2 = x, x
-    y1, y2 = y, y
+    # x1, x2 = x, x
+    # y1, y2 = y, y
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 30
+    N = 10
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -120,29 +115,35 @@ def foo(W, H, iter, x, y, r1, r2):
         x_max = x + 0.5 * r
         y_min = y - 0.5 * H * r / W
         y_max = y + 0.5 * H * r / W
-        yield W, H, iter, x_min, x_max, y_min, y_max
+        yield W, H, iter, iteration, x_min, x_max, y_min, y_max
 
 
 def run(args):
-    I = mandel(*args)
+    I, x, y = mandel(*args)
     I[I == 1] = 3
     I[I == 0] = 1
-    return I
+    return I, x, y
 
 
 def save(arr, count):
     img = imshow(arr.T, origin='lower left', cmap="spectral")
-    img.write_png('abc/abc_%03d.png' % count, noscale=True)
+    img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
 
 
 if __name__ == '__main__':
     # convert  abc* ms.gif
-    gen = foo(600, 600, 100, -1.339623, 0.071429988, 4, 0.04)
-    for count, i in enumerate(gen):
-        start = time.time()
-        arr = run(i)
-        save(arr, count)
-        print(i)
-        print('Time taken: {}'.format(str(time.time() - start)))
+    x1, y1 =  -1.339623, 0.071429988
+    x2, y2 = x1, y1
 
+    r1, r2 = 4, 0.04
+    for iteration in range(1, 20):
+        gen = foo(300, 300, 100, iteration, x1, y1, x2, y2, r1, r2)
+        for count, i in enumerate(gen):
+            start = time.time()
+            arr, x, y = run(i)
+            save(arr, iteration * 20 + count)
+            print(i)
+            print('Time taken: {}'.format(str(time.time() - start)))
+        r1 = r2
+        r2 = r1 / 100
