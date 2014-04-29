@@ -37,7 +37,7 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
     # c is the complex number with the given x, y coords
     # 2D array W*H
     # add all values of x with all values of y*i
-    # elms = [x[0]+y[0]*complex(0,1)...x[n-1]+y[n-1]*complex(0,1)]
+    # elms = [x[0]y[0]*complex(0,1)...x[n-1]y[n-1]*complex(0,1)]
     c = x + complex(0, 1) * y
     del x, y  # save a bit of memory, we only need z
     # the output image coloured according to the number
@@ -70,6 +70,8 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
             break  # all points have escaped
         # equivalent to z = z*z+c but quicker and uses
         # less memory
+        f = z[0]
+        print(f.real, f.imag)
         multiply(z, z, z)
         add(z, c, z)
         # these are the points that have escaped
