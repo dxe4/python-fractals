@@ -19,21 +19,25 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
     itermax is the maximum number of iterations to do
     xmin, xmax, ymin, ymax specify the region of the set to compute.
     '''
-    # The point of ix and iy is that they are 2D arrays
-    # giving the x-coord and y-coord at each point in
-    # the array. The reason for doing this will become
-    # clear below...
+    # The point of ix and iy is that they are 2D arrays giving the x-coord and y-coord at each point in
+    # the array. The reason for doing this will become clear below...
+    #
+    # 2x 2D arrays size=W*H elms = [0,0,0...],[1,1,1...],[n-2,n-2,n-1...], [n-1,n-1,n-1...]
     ix, iy = np.mgrid[0:img_width, 0:img_height]
-    # Now x and y are the x-values and y-values at each
-    # point in the array, linspace(start, end, n)
-    # is an array of n linearly spaced points between
-    # start and end, and we then index this array using
-    # numpy fancy indexing. If A is an array and I is
-    # an array of indices, then A[I] has the same shape
+    # Now x and y are the x-values and y-values at each point in the array, linspace(start, end, n)
+    # is an array of n linearly spaced points between  start and end, and we then index this array using
+    # numpy fancy indexing. If A is an array and I is an array of indices, then A[I] has the same shape
     # as I and at each place i in I has the value A[i].
+    #
+    # 2x 2D arrays size= W*H
+    # W arrays elms = [xmin, xmin+c, xmin+2c... xmax], [xmin, xmin+c, xmin+2c... xmax],
     x = np.linspace(xmin, xmax, img_width)[ix]
     y = np.linspace(ymin, ymax, img_height)[iy]
+
     # c is the complex number with the given x, y coords
+    # 2D array W*H
+    # add all values of x with all values of y*i
+    # elms = [x[0]+y[0]*complex(0,1)...x[n-1]+y[n-1]*complex(0,1)]
     c = x + complex(0, 1) * y
     del x, y  # save a bit of memory, we only need z
     # the output image coloured according to the number
@@ -78,9 +82,7 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
         # because we need to know which point in img
         # to colour
         img[ix[rem], iy[rem]] = i + 1
-        # print(ix[rem][0], iy[rem][0], i)
-        # print(ix[rem][1], iy[rem][1], i)
-        # print(ix[rem][2], iy[rem][2], i)
+
         # print()
         # -rem is the array of points which haven't
         # escaped, in numpy -A for a boolean array A
@@ -97,7 +99,7 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
 
 def foo(W, H, iter):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
-    x1, y1, r1 = -1.339623, 0.071429988, 2
+    x1, y1, r1 = -1.339623, 0.071429988, 0.00000000009
     x2, y2, r2 = -1.339623, 0.071429988, 0.00000000009
     N = 150
 
@@ -126,6 +128,7 @@ def save(arr, count):
     img.write_png('abc/abc_%03d.png' % count, noscale=True)
     close()
 
+
 if __name__ == '__main__':
     # convert  abc* ms.gif
     gen = foo(600, 600, 100)
@@ -135,4 +138,5 @@ if __name__ == '__main__':
         save(arr, count)
         print(i)
         print('Time taken: {}'.format(str(time.time() - start)))
+        break
 
