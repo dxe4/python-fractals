@@ -70,8 +70,8 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
             break  # all points have escaped
         # equivalent to z = z*z+c but quicker and uses
         # less memory
-        f = z[0]
-        print(f.real, f.imag)
+        # f = z[0]
+        # print(f.real, f.imag)
         multiply(z, z, z)
         add(z, c, z)
         # these are the points that have escaped
@@ -99,15 +99,16 @@ def mandel(img_width, img_height, itermax, xmin, xmax, ymin, ymax):
     return img
 
 
-def foo(W, H, iter):
+def foo(W, H, iter, x, y, r1, r2):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
     # x1, y1, r1 = -1.339623, 0.071429988, 2
     # x2, y2, r2 = -1.339623, 0.071429988, 0.00000000009
-
-    x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
-    x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
+    x1, x2 = x, x
+    y1, y2 = y, y
+    # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
+    # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 150
+    N = 30
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -137,12 +138,11 @@ def save(arr, count):
 
 if __name__ == '__main__':
     # convert  abc* ms.gif
-    gen = foo(600, 600, 100)
+    gen = foo(600, 600, 100, -1.339623, 0.071429988, 4, 0.04)
     for count, i in enumerate(gen):
         start = time.time()
         arr = run(i)
         save(arr, count)
         print(i)
         print('Time taken: {}'.format(str(time.time() - start)))
-        break
 
