@@ -4,7 +4,8 @@ from numpy import copy, multiply, add
 import time
 import math
 from numpy import float128
-big_number = float128(0.78919934123451241329321382193219)
+
+big_number = float128(0.7777877778777787778797877877878788)
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
 def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
@@ -82,7 +83,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         # this is why we keep the arrays ix and iy
         # because we need to know which point in img
         # to colour
-        img[ix[rem], iy[rem]] = (i + 1) + (iteration * 2)
+        img[ix[rem], iy[rem]] = (i + 1) * 2 + (iteration * 2)
 
         # print()
         # -rem is the array of points which haven't
@@ -96,7 +97,6 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         ix, iy = ix[rem], iy[rem]
         c = c[rem]
     _eggs = (str(i) for i in bar)
-    print([i for i in _eggs if "00" in i])
     return img, a, b
 
 
@@ -109,7 +109,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 5
+    N = 3
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -133,27 +133,24 @@ def run(args):
 
 def save(arr, count):
     img = imshow(arr.T, origin='lower left', cmap="spectral")
-    img.write_png('abc/abc_%05d.png' % count, noscale=True)
+    img.write_png('abc/abc_%04d.png' % count, noscale=True)
     close()
 
 
 if __name__ == '__main__':
     # convert  abc* ms.gif
-    x1, y1 =  -1.339623, 0.071429988
+    x1, y1 = -1.339623, 0.071429988
     x2, y2 = x1, y1
 
     r1 = 4.141234
-    r2 = r1 - r1 / 1000
-    _div = 1000
+    r2 = r1 * big_number
     for iteration in range(1, 500):
-        gen = foo(50, 50, 100, iteration, x1, y1, x2, y2, r1, r2)
+        gen = foo(1024, 1024, 60, iteration, x1, y1, x2, y2, r1, r2)
         for count, i in enumerate(gen):
             start = time.time()
             arr, x, y = run(i)
             save(arr, iteration * 20 + count)
             # print(iteration * 20 + count)
             # print('Time taken: {}'.format(str(time.time() - start)))
-
         r1 = r2
         r2 = r1 * big_number
-        print(r1)
