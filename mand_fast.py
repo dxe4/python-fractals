@@ -3,6 +3,8 @@ from matplotlib.pyplot import imshow, close
 from numpy import copy, multiply, add
 import time
 import math
+from numpy import float128
+big_number = float128(0.78919934123451241329321382193219)
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
 def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
@@ -93,7 +95,8 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         z = z[rem]
         ix, iy = ix[rem], iy[rem]
         c = c[rem]
-    # print([i for i in bar])
+    _eggs = (str(i) for i in bar)
+    print([i for i in _eggs if "00" in i])
     return img, a, b
 
 
@@ -106,7 +109,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 10
+    N = 5
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -139,9 +142,10 @@ if __name__ == '__main__':
     x1, y1 =  -1.339623, 0.071429988
     x2, y2 = x1, y1
 
-    r1 = 4
-    r2 = r1 - r1 / 3
-    for iteration in range(1, 200):
+    r1 = 4.141234
+    r2 = r1 - r1 / 1000
+    _div = 1000
+    for iteration in range(1, 500):
         gen = foo(50, 50, 100, iteration, x1, y1, x2, y2, r1, r2)
         for count, i in enumerate(gen):
             start = time.time()
@@ -149,7 +153,7 @@ if __name__ == '__main__':
             save(arr, iteration * 20 + count)
             # print(iteration * 20 + count)
             # print('Time taken: {}'.format(str(time.time() - start)))
-        print(r1,r2)
+
         r1 = r2
-        r2 = r1 - r1 / 9
-        print(r1,r2)
+        r2 = r1 * big_number
+        print(r1)
