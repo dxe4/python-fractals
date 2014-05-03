@@ -103,7 +103,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 6
+    N = 20
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -137,9 +137,9 @@ if __name__ == '__main__':
     x2, y2 = x1, y1
 
     r1 = 4.141234
-    r2 = r1 * big_number
+    r2 = 0.4141234 #r1 * big_number
     for iteration in range(1, 500):
-        gen = foo(3072, 3072, 150, iteration, x1, y1, x2, y2, r1, r2)
+        gen = foo(1024, 1024, 150, iteration, x1, y1, x2, y2, r1, r2)
         for count, i in enumerate(gen):
             start = time.time()
             x1, y1 = x2, y2
