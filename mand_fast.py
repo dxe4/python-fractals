@@ -5,7 +5,7 @@ import time
 import math
 from numpy import float128
 
-big_number = float128(0.66666666666666666666666666666)
+big_number = float128(0.66778899666677889966667788996666778899666677889966)
 # big_number = float128(0.55544433322221111111111111111111111111111111111111111111111111111111)
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
@@ -42,12 +42,12 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
 
     x_index, y_index = last_iter[0][0], last_iter[1][0]
 
-    possible_x_zoom = [(i[0], i[0] - (xmax-xmin)) for i in x[last_iter[0]]]
-    possible_y_zoom = [(i[y_index], - (ymax-ymin)) for i in y]
-    #  x[x_index][0], y[0][y_index]
-    mx = min(possible_x_zoom, key=lambda k: k[1])[0]
-    my = min(possible_y_zoom, key=lambda k: k[1])[0]
-    return img, mx, my#x[x_index][0], y[0][y_index]
+    # possible_x_zoom = [(i[0], i[0] - (xmax-xmin)) for i in x[last_iter[0]]]
+    # possible_y_zoom = [(i[y_index], - (ymax-ymin)) for i in y]
+    # #  x[x_index][0], y[0][y_index]
+    # mx = min(possible_x_zoom, key=lambda k: k[1])[0]
+    # my = min(possible_y_zoom, key=lambda k: k[1])[0]
+    return img, x[x_index][0], y[0][y_index]
 
 
 def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
@@ -94,8 +94,9 @@ if __name__ == '__main__':
 
     r1 = 4.141234
     r2 = r1 * big_number
-    for iteration in range(1, 500):
-        gen = foo(512, 512, 40, iteration, x1, y1, x2, y2, r1, r2)
+    count_all = 0
+    for iteration in range(1, 800):
+        gen = foo(2048, 2048, 40 + int(iteration /2), iteration, x1, y1, x2, y2, r1, r2)
         x1, y1 = x2, y2
         for count, i in enumerate(gen):
             start = time.time()
@@ -103,8 +104,8 @@ if __name__ == '__main__':
             arr, x2, y2 = run(i)
             if not np.unique(arr).size > 1:
                 raise Exception
-            save(arr, iteration * 20 + count)
-            print(iteration * 20 + count)
+            save(arr, count_all)
+            print("%04d" % count_all)
             print('Time taken: {}'.format(str(time.time() - start)))
             # aaaa = iteration * 20 + count
             # for c,i in enumerate(arr):
@@ -113,6 +114,7 @@ if __name__ == '__main__':
             #     for c,i in enumerate(arr):
             #         print(c,[k for k in i])
             #     raise Exception
+            count_all += 1
         r1 = r2
         r2 = r1 * big_number
         print(r1,r2)
