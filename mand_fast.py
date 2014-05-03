@@ -33,7 +33,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         rem = abs(z) > 2.0
         img[ix[rem], iy[rem]] = i + 1
         new_iter = np.where(img==i+1)
-        if len(new_iter) == 2:
+        if len(new_iter) == 2 and len(new_iter[0] > 0) and len(new_iter[1] > 0):
             last_iter  = new_iter
         rem = -rem
         z = z[rem]
@@ -95,12 +95,13 @@ if __name__ == '__main__':
     r1 = 4.141234
     r2 = r1 * big_number
     count_all = 0
+    to_iter = 85
     for iteration in range(1, 800):
-        gen = foo(2048, 2048, 40 + int(iteration /2), iteration, x1, y1, x2, y2, r1, r2)
+        gen = foo(1536, 1536, to_iter, iteration, x1, y1, x2, y2, r1, r2)
         x1, y1 = x2, y2
         for count, i in enumerate(gen):
             start = time.time()
-
+            to_iter+=1
             arr, x2, y2 = run(i)
             if not np.unique(arr).size > 1:
                 raise Exception
