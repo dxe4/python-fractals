@@ -4,6 +4,7 @@ from numpy import copy, multiply, add
 import time
 import math
 from numpy import float128
+import random
 
 big_number = float128(0.66778899666677889966667788996666778899666677889966)
 # big_number = float128(0.55544433322221111111111111111111111111111111111111111111111111111111)
@@ -31,7 +32,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         multiply(z, z, z)
         add(z, c, z)
         rem = abs(z) > 2.0
-        img[ix[rem], iy[rem]] = i + 1
+        img[ix[rem], iy[rem]] = i + 1 + int(iteration - iteration*0.9)
         new_iter = np.where(img==i+1)
         if len(new_iter) == 2 and len(new_iter[0] > 0) and len(new_iter[1] > 0):
             last_iter  = new_iter
@@ -47,7 +48,8 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     # #  x[x_index][0], y[0][y_index]
     # mx = min(possible_x_zoom, key=lambda k: k[1])[0]
     # my = min(possible_y_zoom, key=lambda k: k[1])[0]
-    return img, x[x_index][0], y[0][y_index]
+    r = random.randint(0, img_height-1)
+    return img, x[x_index][r], y[r][y_index]
 
 
 def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
@@ -63,7 +65,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
-    for n in range(N):
+    for n in range(N-1):
         x = (1 - n / float(N - 1)) * x1 + (n / float(N - 1)) * x2
         y = (1 - n / float(N - 1)) * y1 + (n / float(N - 1)) * y2
         r = r1 * math.pow(rscale, n)
@@ -82,7 +84,7 @@ def run(args):
 
 
 def save(arr, count):
-    img = imshow(arr.T, origin='lower left') # spectral cmap="hot"
+    img = imshow(arr.T, origin='lower left', cmap="Paired") # spectral cmap="hot"
     img.write_png('abc/abc_%04d.png' % count, noscale=True)
     close()
 
@@ -95,26 +97,18 @@ if __name__ == '__main__':
     r1 = 4.141234
     r2 = r1 * big_number
     count_all = 0
-    to_iter = 85
+    to_iter = 150
     for iteration in range(1, 800):
-        gen = foo(1536, 1536, to_iter, iteration, x1, y1, x2, y2, r1, r2)
+        gen = foo(512, 512, to_iter, iteration, x1, y1, x2, y2, r1, r2)
         x1, y1 = x2, y2
         for count, i in enumerate(gen):
             start = time.time()
-            to_iter+=1
+            if iteration % 15 == 0:
+                to_iter+=1
             arr, x2, y2 = run(i)
             if not np.unique(arr).size > 1:
                 raise Exception
             save(arr, count_all)
-            print("%04d" % count_all)
-            print('Time taken: {}'.format(str(time.time() - start)))
-            # aaaa = iteration * 20 + count
-            # for c,i in enumerate(arr):
-            #     print(c,[k for k in i])
-            # if "%04d" % aaaa == "0200":
-            #     for c,i in enumerate(arr):
-            #         print(c,[k for k in i])
-            #     raise Exception
             count_all += 1
         r1 = r2
         r2 = r1 * big_number
