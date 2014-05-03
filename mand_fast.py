@@ -52,7 +52,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     return img, x[x_index][r], y[r][y_index]
 
 
-def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
+def get_input(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # http://batchloaf.wordpress.com/2012/12/15/visualising-the-mandelbrot-set/
     # x1, y1, r1 = -1.339623, 0.071429988, 2
     # x2, y2, r2 = -1.339623, 0.071429988, 0.00000000009
@@ -61,7 +61,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 5
+    N = 20
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -98,12 +98,12 @@ if __name__ == '__main__':
     r2 = r1 * big_number
     count_all = 0
     to_iter = 150
-    for iteration in range(1, 800):
-        gen = foo(512, 512, to_iter, iteration, x1, y1, x2, y2, r1, r2)
+    for iteration in range(1, 1220):
+        gen = get_input(2048, 2048, to_iter, iteration, x1, y1, x2, y2, r1, r2)
         x1, y1 = x2, y2
         for count, i in enumerate(gen):
             start = time.time()
-            if iteration % 15 == 0:
+            if iteration % 25 == 0 or iteration % 65 == 0:
                 to_iter+=1
             arr, x2, y2 = run(i)
             if not np.unique(arr).size > 1:
