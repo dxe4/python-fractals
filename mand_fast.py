@@ -5,7 +5,7 @@ import time
 import math
 from numpy import float128
 
-big_number = float128(0.7777877778777787778797877877878788)
+big_number = float128(0.4444555566667777888888899999999999989898989898989898989898989)
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
 def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
@@ -31,13 +31,12 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     # W arrays elms = [xmin, xmin+c, xmin+2c... xmax], [xmin, xmin+c, xmin+2c... xmax],
     x = np.linspace(xmin, xmax, img_width)[ix]
     y = np.linspace(ymin, ymax, img_height)[iy]
-
     # c is the complex number with the given x, y coords
     # 2D array W*H
     # add all values of x with all values of y*i
     # elms = [x[0]y[0]*complex(0,1)...x[n-1]y[n-1]*complex(0,1)]
     c = x + complex(0, 1) * y
-    del x, y  # save a bit of memory, we only need z
+    # del x, y  # save a bit of memory, we only need z
     # the output image coloured according to the number
     # of iterations it takes to get to the boundary
     # abs(z)>2
@@ -62,30 +61,24 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     # first iteration makes z=c so we just start there.
     # We need to copy c because otherwise the operation
     # z->z^2 will send c->c^2.
-    bar = None
     z = copy(c)
     for i in range(itermax):
         if not len(z):
-            break  # all points have escaped
+            break
         # equivalent to z = z*z+c but quicker and uses
         # less memory
-        f = z[0]
-        a, b = f.real, f.imag
-        bar = z
         multiply(z, z, z)
         add(z, c, z)
         # these are the points that have escaped
         rem = abs(z) > 2.0
-
         # colour them with the iteration number, we
         # add one so that points which haven't
         # escaped have 0 as their iteration number,
         # this is why we keep the arrays ix and iy
         # because we need to know which point in img
         # to colour
-        img[ix[rem], iy[rem]] = (i + 1) * 2 + (iteration * 2)
-
-        # print()
+        img[ix[rem], iy[rem]] = i + 1
+        last_iter  = np.where(img==i+1)
         # -rem is the array of points which haven't
         # escaped, in numpy -A for a boolean array A
         # is the NOT operation.
@@ -96,8 +89,9 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         z = z[rem]
         ix, iy = ix[rem], iy[rem]
         c = c[rem]
-    _eggs = (str(i) for i in bar)
-    return img, a, b
+
+    x_index, y_index = last_iter[0][0], last_iter[1][0]
+    return img, x[x_index][0], y[0][y_index]
 
 
 def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
@@ -109,7 +103,7 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 3
+    N = 6
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -125,14 +119,14 @@ def foo(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
 
 
 def run(args):
-    I, x, y = mandel(*args)
+    I,x,y = mandel(*args)
     I[I == 1] = 3
     I[I == 0] = 1
-    return I, x, y
+    return I,x,y
 
 
 def save(arr, count):
-    img = imshow(arr.T, origin='lower left', cmap="spectral")
+    img = imshow(arr.T, origin='lower left') # spectral cmap="hot"
     img.write_png('abc/abc_%04d.png' % count, noscale=True)
     close()
 
@@ -145,12 +139,24 @@ if __name__ == '__main__':
     r1 = 4.141234
     r2 = r1 * big_number
     for iteration in range(1, 500):
-        gen = foo(1024, 1024, 60, iteration, x1, y1, x2, y2, r1, r2)
+        gen = foo(3072, 3072, 150, iteration, x1, y1, x2, y2, r1, r2)
         for count, i in enumerate(gen):
             start = time.time()
-            arr, x, y = run(i)
+            x1, y1 = x2, y2
+            arr, x2, y2 = run(i)
+            if not np.unique(arr).size > 1:
+                raise Exception
             save(arr, iteration * 20 + count)
-            # print(iteration * 20 + count)
-            # print('Time taken: {}'.format(str(time.time() - start)))
+            print(iteration * 20 + count)
+            print('Time taken: {}'.format(str(time.time() - start)))
+            # aaaa = iteration * 20 + count
+            # for c,i in enumerate(arr):
+            #     print(c,[k for k in i])
+            # if "%04d" % aaaa == "0200":
+            #     for c,i in enumerate(arr):
+            #         print(c,[k for k in i])
+            #     raise Exception
         r1 = r2
         r2 = r1 * big_number
+        print(r1,r2)
+#ffmpeg -f image2 -r 20 -pattern_type glob -i '*.png' output.mp4
