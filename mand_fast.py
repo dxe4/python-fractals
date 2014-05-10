@@ -61,7 +61,7 @@ def get_input(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
     # x1, y1, r1 = -1.76960793855, -0.00251916221504, 0.009
     # x2, y2, r2 = -1.76960793855, -0.00251916221504, 0.00000000009
     # -1.75920978129 0.000175114702115
-    N = 20
+    N = 3
 
     rscale = pow(r2 / r1, 1 / float(N - 1))
 
@@ -84,8 +84,8 @@ def run(args):
 
 
 def save(arr, count):
-    img = imshow(arr.T, origin='lower left', cmap="Paired") # spectral cmap="hot"
-    img.write_png('abc/abc_%04d.png' % count, noscale=True)
+    img = imshow(arr.T, origin='lower left', cmap="hot") # spectral cmap="hot"
+    img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
 
 
@@ -103,8 +103,8 @@ if __name__ == '__main__':
         x1, y1 = x2, y2
         for count, i in enumerate(gen):
             start = time.time()
-            if iteration % 25 == 0 or iteration % 65 == 0:
-                to_iter+=1
+            # if iteration % 35 == 0 or iteration % 65 == 0:
+            #     to_iter+=1
             arr, x2, y2 = run(i)
             if not np.unique(arr).size > 1:
                 raise Exception
@@ -112,5 +112,4 @@ if __name__ == '__main__':
             count_all += 1
         r1 = r2
         r2 = r1 * big_number
-        print(r1,r2)
 #ffmpeg -f image2 -r 20 -pattern_type glob -i '*.png' output.mp4
