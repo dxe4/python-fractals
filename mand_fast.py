@@ -10,6 +10,7 @@ big_number = float128(0.66778899666677889966667788996666778899666677889966)
 # big_number = float128(0.55544433322221111111111111111111111111111111111111111111111111111111)
 # http://thesamovar.wordpress.com/2009/03/22/fast-fractals-with-python-and-numpy/
 
+
 def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
     # 2x 2D arrays size=W*H elms = [0,0,0...],[1,1,1...],[n-2,n-2,n-1...], [n-1,n-1,n-1...]
     ix, iy = np.mgrid[0:img_width, 0:img_height]
@@ -35,7 +36,7 @@ def mandel(img_width, img_height, itermax, iteration, xmin, xmax, ymin, ymax):
         img[ix[rem], iy[rem]] = i + 1 + int(iteration - iteration*0.9)
         new_iter = np.where(img==i+1)
         if len(new_iter) == 2 and len(new_iter[0] > 0) and len(new_iter[1] > 0):
-            last_iter  = new_iter
+            last_iter = new_iter
         rem = -rem
         z = z[rem]
         ix, iy = ix[rem], iy[rem]
@@ -77,14 +78,15 @@ def get_input(W, H, iter, iter2, x1, y1, x2, y2, r1, r2):
 
 
 def run(args):
-    I,x,y = mandel(*args)
+    I, x, y = mandel(*args)
     I[I == 1] = 3
     I[I == 0] = 1
-    return I,x,y
+    return I, x, y
 
 
 def save(arr, count):
-    img = imshow(arr.T, origin='lower left', cmap="hot") # spectral cmap="hot"
+    # spectral cmap="hot"
+    img = imshow(arr.T, origin='lower left', cmap="hot")
     img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
 

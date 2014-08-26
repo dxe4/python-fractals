@@ -4,7 +4,6 @@ from pylab import imshow, show
 from timeit import default_timer as timer
 
 
-
 def mandel(x, y, max_iters):
     """
       Given the real and imaginary parts of a complex number,
