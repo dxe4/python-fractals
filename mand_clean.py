@@ -32,19 +32,19 @@ def create_fractal(min_x, max_x, min_y, max_y, image, iters):
         for y in range(height):
             imag = min_y + y * pixel_size_y
             color = mandel(real, imag, iters)
-            print(color)
             image[y, x] = color
 
 
-image = np.zeros((1536, 1536), dtype=np.uint8)
-start = timer()
-create_fractal(-2, .5, -1.25, 1.25, image, 30)
+def run():
+    image = np.zeros((2000, 2000), dtype=np.uint8)
+    start = timer()
+    create_fractal(-2, .5, -1.25, 1.25, image, 2000)
 
-# create_fractal(-.00001, .000001, -.000001, .000001, image, 20)
-dt = timer() - start
+    # create_fractal(-.00001, .000001, -.000001, .000001, image, 20)
+    dt = timer() - start
 
-print("Mandelbrot created in %f s" % dt)
+    print("Mandelbrot created in %f s" % dt)
 
-img = imshow(image.T, origin='lower left')
-img.write_png('mandel5.png', noscale=True)
-close()
+    img = imshow(image.T, origin='lower left')
+    img.write_png('mandel5.png', noscale=True)
+    close()

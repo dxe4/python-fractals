@@ -3,11 +3,12 @@ import time
 from matplotlib.pyplot import imshow, show, cm, close
 from cython.parallel import prange
 import cython
+
 # pragne(1, nogil=true)
 
-
-cpdef double target_x = -0.9223327810370947027656057193752719757635
-cpdef double target_y = 0.3102598350874576432708737495917724836010
+cpdef double _target_x = -0.9223327810370947027656057193752719757635
+cpdef double _target_y = 0.3102598350874576432708737495917724836010
+cdef double _length = 2.5
 
 
 cdef int calculate(double x, double y, int n) nogil:
@@ -45,6 +46,7 @@ cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int n):
 cdef void save(int[:, ::1] arr, int count):
     # spectral cmap="hot"
     img = imshow(arr.T, origin='lower left', cmap=cm.gist_stern)
+    # 'abc/abc_%05d.png' % count
     img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
     pass
@@ -64,21 +66,25 @@ cpdef get_initial_input():
     cpdef double y1 = -1.3
     cpdef double y2 = 1.3
 
-    return x1, x2, y1, y2, 600, 600j
+    return x1, x2, y1, y2, 1000, 1000j
 
 
-cdef list zoom2(double x1, double x2, double y1, double y2):
+cdef list center_point(double x1, double x2, double y1, double y2,
+                       double target_x, double target_y, double length):
     cdef double x, y, x_min, x_max, y_min, y_max
-    
+
     x_diff = abs(x1 - x2)
     y_diff = abs(y1 - y2)
-    
-    x_min = target_x - 0.5 * x_diff
-    x_max = target_x + 0.5 * x_diff
-    y_min = target_y - 0.5 * y_diff
-    y_max = target_y + 0.5 * y_diff
+
+    x_min = target_x - 0.5 * length
+    x_max = target_x + 0.5 * length
+    y_min = target_y - 0.5 * length
+    y_max = target_y + 0.5 * length
 
     return [x_min, x_max, y_min, y_max]
+
+cdef zoom(double scale):
+    pass
 
 
 cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
@@ -88,9 +94,11 @@ cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
     cdef int i
     cdef double scale = 0.5
 
-
-    for i in range(2):
+    x1, x2, y1, y2 = center_point(x1, x2, y1, y2, _target_x, _target_y,
+                                  _length)
+    for i in range(5):
         d = _run(x1, x2, y1, y2, n, nj)
+        print('Exec time {}'.format(time.time() - t))
         save(d, i)
 
 
