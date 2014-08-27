@@ -71,9 +71,6 @@ cdef list center_point(double x1, double x2, double y1, double y2,
                        double target_x, double target_y, double length):
     cdef double x, y, x_min, x_max, y_min, y_max
 
-    x_diff = abs(x1 - x2)
-    y_diff = abs(y1 - y2)
-
     x_min = target_x - 0.5 * length
     x_max = target_x + 0.5 * length
     y_min = target_y - 0.5 * length
@@ -82,9 +79,6 @@ cdef list center_point(double x1, double x2, double y1, double y2,
     return [x_min, y_min, y_min, y_max]
 
 cdef list find_zoom_edges(double[::1] x, double[::1] y, double scale, int n):
-    # pos = scale * n
-    # pos_a = x[pos], y[pos]
-    # pos_b = x[n-pos], y[n-pos]
     cdef double new_x1, new_x2, new_y1, new_y2
     cdef int pos
     pos = int(scale * n)
@@ -107,7 +101,7 @@ cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
 
     x1, x2, y1, y2 = center_point(x1, x2, y1, y2, _target_x, _target_y,
                                   _length)
-    for i in range(5):
+    for i in range(50):
         x = np.r_[x1:x2:nj]
         y = np.r_[y1:y2:nj]
         d = generate(x, y, n)
