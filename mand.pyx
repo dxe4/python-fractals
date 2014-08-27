@@ -8,7 +8,8 @@ import cython
 
 cpdef double _target_x = -0.9223327810370947027656057193752719757635
 cpdef double _target_y = 0.3102598350874576432708737495917724836010
-cdef double _length = 2.5
+cdef double _length = 2.5 / 2
+cdef double scale = 0.01
 
 
 cdef int calculate(double x, double y, int n) nogil:
@@ -52,12 +53,9 @@ cdef void save(int[:, ::1] arr, int count):
     pass
 
 
-cdef int[:, ::1] _run(double x1, double x2, double y1, double y2, int n,
-                      complex nj):
-    cdef double[::1] x = np.r_[x1:x2:nj]
-    cdef double[::1] y = np.r_[y1:y2:nj]
-    cdef int[:, ::1] d = generate(x, y, n)
-    return d
+# cdef int[:, ::1] _run(double x, double y, int n):
+#     cdef int[:, ::1] d = generate(x, y, n)
+#     return d
 
 
 cpdef get_initial_input():
@@ -66,7 +64,7 @@ cpdef get_initial_input():
     cpdef double y1 = -1.3
     cpdef double y2 = 1.3
 
-    return x1, x2, y1, y2, 1000, 1000j
+    return x1, x2, y1, y2, 2000, 2000j
 
 
 cdef list center_point(double x1, double x2, double y1, double y2,
@@ -81,20 +79,22 @@ cdef list center_point(double x1, double x2, double y1, double y2,
     y_min = target_y - 0.5 * length
     y_max = target_y + 0.5 * length
 
-    return [x_min, x_max, y_min, y_max]
+    return [x_min, y_min, y_min, y_max]
 
-cdef zoom(double[::1] x, double[::1] y, double scale, int n):
+cdef list find_zoom_edges(double[::1] x, double[::1] y, double scale, int n):
     # pos = scale * n
     # pos_a = x[pos], y[pos]
     # pos_b = x[n-pos], y[n-pos]
-    cdef double point_a, point_b
     cdef double new_x1, new_x2, new_y1, new_y2
     cdef int pos
     pos = int(scale * n)
-    new_x1 = x[pos]
+
+    new_x1 = np.asarray(x)[pos]
     new_y1 = y[pos]
-    new_x2 = x[n-pos]
-    new_y2 = y[n-pos]
+    new_x2 = x[n - pos]
+    new_y2 = y[n - pos]
+
+    return [new_x1, new_y1, new_x2, new_y2]
 
 
 cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
@@ -102,14 +102,18 @@ cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
     # I = mandel(400, 400, 100, -2, .5, -1.25, 1.25)
     cdef int[:, ::1] d
     cdef int i
-    cdef double scale = 0.5
+    cdef double[::1] x
+    cdef double[::1] y
 
     x1, x2, y1, y2 = center_point(x1, x2, y1, y2, _target_x, _target_y,
                                   _length)
     for i in range(5):
-        d = _run(x1, x2, y1, y2, n, nj)
+        x = np.r_[x1:x2:nj]
+        y = np.r_[y1:y2:nj]
+        d = generate(x, y, n)
         print('Exec time {}'.format(time.time() - t))
         save(d, i)
+        x1, y1, x2, y2 = find_zoom_edges(x, y, scale, n)
 
 
 def initial_run():
