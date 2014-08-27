@@ -83,8 +83,18 @@ cdef list center_point(double x1, double x2, double y1, double y2,
 
     return [x_min, x_max, y_min, y_max]
 
-cdef zoom(double scale):
-    pass
+cdef zoom(double[::1] x, double[::1] y, double scale, int n):
+    # pos = scale * n
+    # pos_a = x[pos], y[pos]
+    # pos_b = x[n-pos], y[n-pos]
+    cdef double point_a, point_b
+    cdef double new_x1, new_x2, new_y1, new_y2
+    cdef int pos
+    pos = int(scale * n)
+    new_x1 = x[pos]
+    new_y1 = y[pos]
+    new_x2 = x[n-pos]
+    new_y2 = y[n-pos]
 
 
 cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
