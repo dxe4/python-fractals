@@ -1,4 +1,6 @@
+from copy import copy
 import numpy as np
+cimport numpy as np
 import time
 from matplotlib.pyplot import imshow, show, cm, close
 from cython.parallel import prange
@@ -12,12 +14,12 @@ cdef double _length = 2.5 / 2
 cdef double scale = 0.01
 
 
-cdef int calculate(double x, double y, int n) nogil:
+cdef int calculate(double x, double y, int iterations):
     cdef double z_x = x
     cdef double z_y = y
     cdef int i
 
-    for i in range(n):
+    for i in range(iterations):
         z_x, z_y = z_x ** 2 - z_y ** 2 + x, 2 * z_x * z_y + y
         if z_x ** 2 + z_y ** 2 >= 4.0:
             break
@@ -27,7 +29,7 @@ cdef int calculate(double x, double y, int n) nogil:
 
 
 @cython.boundscheck(False)
-cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int n):
+cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
     '''
     [::1] -> 1d array (cython memoryview)
     [:, ::1] -> 2d array
@@ -37,12 +39,13 @@ cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int n):
     cdef int N = len(xs)
 
     cdef int[:, ::1] d = np.empty(shape=(M, N), dtype=np.int32)
-    with nogil:
-        for i in prange(M):
-            for j in prange(N):
-                d[j, i] = calculate(xs[j], ys[i], n)
+    #with nogil:
+    for i in range(M):
+        for j in range(N):
+            d[j, i] = calculate(xs[j], ys[i], iterations)
     return d
 
+# Move rest of the functions to a py file
 
 cdef void save(int[:, ::1] arr, int count):
     # spectral cmap="hot"
@@ -83,7 +86,7 @@ cdef list find_zoom_edges(double[::1] x, double[::1] y, double scale, int n):
     cdef int pos
     pos = int(scale * n)
 
-    new_x1 = np.asarray(x)[pos]
+    new_x1 = x[pos]
     new_y1 = y[pos]
     new_x2 = x[n - pos]
     new_y2 = y[n - pos]
@@ -98,22 +101,32 @@ cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
     cdef int i
     cdef double[::1] x
     cdef double[::1] y
+    cdef int iterations = 800
 
     x1, x2, y1, y2 = center_point(x1, x2, y1, y2, _target_x, _target_y,
                                   _length)
-    for i in range(50):
+    for i in range(150):
         x = np.r_[x1:x2:nj]
         y = np.r_[y1:y2:nj]
-        d = generate(x, y, n)
+        d = generate(x, y, iterations)
         print('Exec time {}'.format(time.time() - t))
         save(d, i)
         x1, y1, x2, y2 = find_zoom_edges(x, y, scale, n)
+        iterations += 1
 
 
 def initial_run():
     args = get_initial_input()
     run(*args)
 
-    # imshow(d, extent=[x_a, x_b, y_a, y_b], cmap=cm.gist_stern)
-    # show()
- # run(-2.13, 0.77, -1.3, 1.3, 100, 2000j)
+'''
+cython: profile=True
+cython: cdivision=True
+
+cython -a foo.pyx
+cnp.ndarray[cnp.float64, ndim=2] arr
+
+imshow(d, extent=[x_a, x_b, y_a, y_b], cmap=cm.gist_stern)
+show()
+run(-2.13, 0.77, -1.3, 1.3, 100, 2000j)
+'''
