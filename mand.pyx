@@ -5,6 +5,7 @@ import time
 from matplotlib.pyplot import imshow, show, cm, close
 from cython.parallel import prange
 import cython
+import math
 
 # pragne(1, nogil=true)
 
@@ -25,6 +26,7 @@ cdef int calculate(double x, double y, int iterations):
             break
     else:
         i = -1
+    # math.log(i + 1 - math.log(abs(z_x + z_y)) / math.log(2))
     return i
 
 
@@ -53,7 +55,6 @@ cdef void save(int[:, ::1] arr, int count):
     # 'abc/abc_%05d.png' % count
     img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
-    pass
 
 
 # cdef int[:, ::1] _run(double x, double y, int n):
@@ -129,4 +130,12 @@ cnp.ndarray[cnp.float64, ndim=2] arr
 imshow(d, extent=[x_a, x_b, y_a, y_b], cmap=cm.gist_stern)
 show()
 run(-2.13, 0.77, -1.3, 1.3, 100, 2000j)
+
+cdef extern from "math.h":
+    double cos(double x)
+    double sin(double x)
+    double tan(double x)
+
+    double M_PI
+    # libraries=["m"] (ext_modules setup.py)
 '''
