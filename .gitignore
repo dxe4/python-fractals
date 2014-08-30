@@ -57,4 +57,4 @@ docs/_build/
 .idea/
 .abc/
 *.png
-*.c
+mand.c
