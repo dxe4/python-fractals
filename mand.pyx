@@ -1,45 +1,46 @@
 # cython: cdivision=True
-from copy import copy
 import numpy as np
-import time
-from matplotlib.pyplot import imshow, show, cm, close
 from cython.parallel import prange
 import cython
 from libc.math cimport log
 
 # pragne(1, nogil=true)
 
-cpdef double _target_x = -0.9223327810370947027656057193752719757635
-cpdef double _target_y = 0.3102598350874576432708737495917724836010
-cdef double _length = 2.5 / 2
-cdef double scale = 0.01
+cdef extern from "mand_gmp.c":
+    object _choose2 "choose2" (unsigned char[] x, unsigned char[] y)
+
+
+def choose(x, y):
+    return _choose2(x, y)
 
 
 cdef double calculate(double x, double y, int iterations) nogil:
-    cdef double z_x = x
-    cdef double z_y = y
-    cdef double zn, nu
-    cdef double i = 0
+    cdef:
+        double z_x = x
+        double z_y = y
+        double zn, nu
+        double i = 0
 
     while i <= iterations:
         z_x, z_y = z_x ** 2 - z_y ** 2 + x, 2 * z_x * z_y + y
         if z_x ** 2 + z_y ** 2 >= 4.0:
             zn = (z_x * z_x + z_y * z_y) ** 2
             nu = log(log(zn)) / log(2)
-            return i + 1 - nu
+            return (i + 1 - nu) / iterations * 255
         i = i + 1
     return -1
 
 
 @cython.boundscheck(False)
-cdef double[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
+cpdef double[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
     '''
     [::1] -> 1d array (cython memoryview)
     [:, ::1] -> 2d array
     '''
-    cdef int i, j
-    cdef int M = len(ys)
-    cdef int N = len(xs)
+    cdef:
+        int i, j
+        int M = len(ys)
+        int N = len(xs)
 
     cdef double[:, ::1] d = np.empty(shape=(M, N), dtype=np.double)
     with nogil:
@@ -47,74 +48,6 @@ cdef double[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
             for j in prange(N):
                 d[j, i] = calculate(xs[j], ys[i], iterations)
     return d
-
-# Move rest of the functions to a py file
-
-cdef void save(double[:, ::1] arr, int count):
-    # spectral cmap="hot"
-    img = imshow(arr.T, origin='lower left', cmap=cm.gist_stern)
-    # 'abc/abc_%05d.png' % count
-    img.write_png('abc/abc_%05d.png' % count, noscale=True)
-    close()
-
-
-cpdef get_initial_input():
-    cpdef double x1 = -2.0
-    cpdef double x2 = 0.5
-    cpdef double y1 = -1.3
-    cpdef double y2 = 1.3
-
-    return x1, x2, y1, y2, 2000, 2000j
-
-
-cdef list center_point(double x1, double x2, double y1, double y2,
-                       double target_x, double target_y, double length):
-    cdef double x, y, x_min, x_max, y_min, y_max
-
-    x_min = target_x - 0.5 * length
-    x_max = target_x + 0.5 * length
-    y_min = target_y - 0.5 * length
-    y_max = target_y + 0.5 * length
-
-    return [x_min, y_min, y_min, y_max]
-
-cdef list find_zoom_edges(double[::1] x, double[::1] y, double scale, int n):
-    cdef double new_x1, new_x2, new_y1, new_y2
-    cdef int pos
-    pos = int(scale * n)
-
-    new_x1 = x[pos]
-    new_y1 = y[pos]
-    new_x2 = x[n - pos]
-    new_y2 = y[n - pos]
-
-    return [new_x1, new_y1, new_x2, new_y2]
-
-
-cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
-    t = time.time()
-    # I = mandel(400, 400, 100, -2, .5, -1.25, 1.25)
-    cdef double[:, ::1] d
-    cdef int i
-    cdef double[::1] x
-    cdef double[::1] y
-    cdef int iterations = 800
-
-    x1, x2, y1, y2 = center_point(x1, x2, y1, y2, _target_x, _target_y,
-                                  _length)
-    for i in range(150):
-        x = np.r_[x1:x2:nj]
-        y = np.r_[y1:y2:nj]
-        d = generate(x, y, iterations)
-        print('Exec time {}'.format(time.time() - t))
-        save(d, i)
-        x1, y1, x2, y2 = find_zoom_edges(x, y, scale, n)
-        iterations += 1
-
-
-def initial_run():
-    args = get_initial_input()
-    run(*args)
 
 '''
 cython: profile=True
