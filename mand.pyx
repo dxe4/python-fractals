@@ -1,11 +1,11 @@
+# cython: cdivision=True
 from copy import copy
 import numpy as np
-cimport numpy as np
 import time
 from matplotlib.pyplot import imshow, show, cm, close
 from cython.parallel import prange
 import cython
-import math
+from libc.math cimport log
 
 # pragne(1, nogil=true)
 
@@ -15,23 +15,24 @@ cdef double _length = 2.5 / 2
 cdef double scale = 0.01
 
 
-cdef int calculate(double x, double y, int iterations):
+cdef double calculate(double x, double y, int iterations) nogil:
     cdef double z_x = x
     cdef double z_y = y
-    cdef int i
+    cdef double zn, nu
+    cdef double i = 0
 
-    for i in range(iterations):
+    while i <= iterations:
         z_x, z_y = z_x ** 2 - z_y ** 2 + x, 2 * z_x * z_y + y
         if z_x ** 2 + z_y ** 2 >= 4.0:
-            break
-    else:
-        i = -1
-    # math.log(i + 1 - math.log(abs(z_x + z_y)) / math.log(2))
-    return i
+            zn = (z_x * z_x + z_y * z_y) ** 2
+            nu = log(log(zn)) / log(2)
+            return i + 1 - nu
+        i = i + 1
+    return -1
 
 
 @cython.boundscheck(False)
-cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
+cdef double[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
     '''
     [::1] -> 1d array (cython memoryview)
     [:, ::1] -> 2d array
@@ -40,26 +41,21 @@ cdef int[:, ::1] generate(double[::1] xs, double[::1] ys, int iterations):
     cdef int M = len(ys)
     cdef int N = len(xs)
 
-    cdef int[:, ::1] d = np.empty(shape=(M, N), dtype=np.int32)
-    #with nogil:
-    for i in range(M):
-        for j in range(N):
-            d[j, i] = calculate(xs[j], ys[i], iterations)
+    cdef double[:, ::1] d = np.empty(shape=(M, N), dtype=np.double)
+    with nogil:
+        for i in prange(M):
+            for j in prange(N):
+                d[j, i] = calculate(xs[j], ys[i], iterations)
     return d
 
 # Move rest of the functions to a py file
 
-cdef void save(int[:, ::1] arr, int count):
+cdef void save(double[:, ::1] arr, int count):
     # spectral cmap="hot"
     img = imshow(arr.T, origin='lower left', cmap=cm.gist_stern)
     # 'abc/abc_%05d.png' % count
     img.write_png('abc/abc_%05d.png' % count, noscale=True)
     close()
-
-
-# cdef int[:, ::1] _run(double x, double y, int n):
-#     cdef int[:, ::1] d = generate(x, y, n)
-#     return d
 
 
 cpdef get_initial_input():
@@ -98,7 +94,7 @@ cdef list find_zoom_edges(double[::1] x, double[::1] y, double scale, int n):
 cpdef run(double x1, double x2, double y1, double y2, int n, complex nj):
     t = time.time()
     # I = mandel(400, 400, 100, -2, .5, -1.25, 1.25)
-    cdef int[:, ::1] d
+    cdef double[:, ::1] d
     cdef int i
     cdef double[::1] x
     cdef double[::1] y
